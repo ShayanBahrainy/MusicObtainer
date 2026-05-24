@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MusicObtainer</title>
+</head>
+<body>
+    <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="TemplateConfigForm">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="AppID">AppID</label>
+                        <input id="AppID" name="AppID" type="number" is="emby-input" min="0" />
+                        <div class="fieldDescription">App's id number</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="UserAuth">UserAuth</label>
+                        <input id="UserAuth" name="UserAuth" type="text" is="emby-input" />
+                        <div class="fieldDescription">User's authentication key</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="AppSecret">AppSecret</label>
+                        <input id="AppSecret" name="AppSecret" type="text" is="emby-input" />
+                        <div class="fieldDescription">App's secret</div>
+                    </div>
+                    <table class="itemContainer" id="itemContainer">
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Item Type</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr>
+                            <td><input id="newItemID" default="-1" type="number" style="display: inline;"></input></td>
+                            <td><input id="newItemType" default="Album" type="text" style="display: inline;"></input></td>
+                            <td><button id="newItemButton" type="button">+</button></td>
+                        </tr>
+                    </table>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var TemplateConfig = {
+                pluginUniqueId: '5c24b130-bbc3-4c69-aedb-e180018792d9'
+            };
+
+            document.querySelector('#TemplateConfigPage')
+                .addEventListener('pageshow', function() {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        document.querySelector('#AppID').value = config.AppID;
+                        document.querySelector('#UserAuth').value = config.UserAuth;
+                        document.querySelector('#AppSecret').value = config.AppSecret;
+
+                        for (let item of config.queueItems) {
+                            const row = document.createElement("tr");
+
+                            const id = document.createElement("td");
+                            id.innerText = item.ItemID;
+
+                            const type = document.createElement("td");
+                            type.innerText = item.Type;
+
+                            row.appendChild(id);
+                            row.appendChild(type);
+
+                            document.querySelector("#itemContainer").appendChild(row);
+                        }
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+            document.querySelector('#TemplateConfigForm')
+                .addEventListener('submit', function(e) {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                    config.AppID = document.querySelector('#AppID').value;
+                    config.UserAuth = document.querySelector('#UserAuth').value;
+                    config.AppSecret = document.querySelector('#AppSecret').value;
+                    ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+
+                e.preventDefault();
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
