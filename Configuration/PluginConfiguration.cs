@@ -10,6 +10,11 @@ namespace Jellyfin.Plugin.Music.Configuration;
 public class QobuzQueueItem
 {
     /// <summary>
+    /// Label for the item
+    /// </summary>
+    public required string Label {get; set;}
+
+    /// <summary>
     /// ID of the item
     /// </summary>
     public int ItemID {get; set;}
@@ -46,7 +51,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Represents all items in the queue
     /// </summary>
     #pragma warning disable
-    public List<QobuzQueueItem> queueItems {get;}
+    public List<QobuzQueueItem> queueItems {get; set;}
     #pragma warning restore
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginConfiguration"/> class.
@@ -54,7 +59,6 @@ public class PluginConfiguration : BasePluginConfiguration
     public PluginConfiguration()
     {
         queueItems = [];
-        AddItem(new QobuzQueueItem{Type=QobuzQueueItem.ItemType.Track, ItemID=1211});
         
         UserAuth = "SecretUserAuth123";
         AppSecret = "SuperSecretShhh";

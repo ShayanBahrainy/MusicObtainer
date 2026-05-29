@@ -25,16 +25,27 @@
                         <div class="fieldDescription">App's secret</div>
                     </div>
                     <table class="itemContainer" id="itemContainer">
+                        <thead>
                         <tr>
+                            <th>Label</th>
                             <th>Item ID</th>
                             <th>Item Type</th>
                             <th>Action</th>
                         </tr>
                         <tr>
-                            <td><input id="newItemID" default="-1" type="number" style="display: inline;"></input></td>
-                            <td><input id="newItemType" default="Album" type="text" style="display: inline;"></input></td>
-                            <td><button id="newItemButton" type="button">+</button></td>
+                            <td class="label-td"><input id="newItemLabel" is="emby-input"></td>
+                            <td class="id-td"><input id="newItemID" is="emby-input" type="number"></td>
+                            <td class="type-td">
+                                <select is="emby-select" class="Options" id="newItemType" class="emby-select-withcolor emby-select">
+                                    <option class="optAlbum" value="Album">Album</option>
+                                    <option class="optTrack" value="Track">Track</option>
+                                </select>
+                            </td>
+                            <td><button id="newItemButton" type="button" class="raised block emby-button" is="emby-button">+</button></td>
                         </tr>
+                        </thead>
+                        <tbody id="itemContainerBody">
+                        </tbody>
                     </table>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
@@ -49,28 +60,96 @@
                 pluginUniqueId: '5c24b130-bbc3-4c69-aedb-e180018792d9'
             };
 
+            function newItemRow(labelVal, idVal, typeVal) {
+                const row = document.createElement("tr");
+
+                const label = document.createElement("td");
+                label.innerText = labelVal;
+                label.contentEditable = true;
+
+                const id = document.createElement("td");
+                id.innerText = idVal;
+
+                id.contentEditable = true;
+
+                const type = document.querySelector(".Options").cloneNode(true);
+                for (let option of type.children) {
+                    if (option.value == typeVal) option.selected = true;
+                }
+
+                const buttonTd = document.createElement("td");
+                const button = document.createElement("emby-button");
+
+                buttonTd.appendChild(button);
+
+                button.classList = "deleteItemButton";
+                button.type = "button";
+                button.innerText = "x";
+                button.classList = "raised block emby-button";
+
+                button.addEventListener("click", function () {
+                    row.remove();
+                })
+
+                row.appendChild(label);
+                row.appendChild(id);
+                row.appendChild(type);
+                row.appendChild(buttonTd);
+
+                document.querySelector("#itemContainerBody").appendChild(row);
+            }
+
+            function parseQueueItems() {
+                const parent = document.querySelector("#itemContainerBody");
+                const itemsRaw = [];
+
+                for (const child of parent.children) {
+                    const itemRaw = [];
+                    for (const input of child.children) {
+                        itemRaw.push(input.value ?? input.innerText);
+                    }
+                    itemsRaw.push(itemRaw);
+                }
+
+                const items = [];
+
+                for (const itemRaw of itemsRaw) {
+                    if (isNaN(parseInt(itemRaw[1]))) {
+                        alert('Item ids must be numbers!');
+                        console.error("ItemID must be a number! Found " + itemRaw[1]);
+                        return [];
+                    }
+
+                    items.push({
+                        Label: itemRaw[0],
+                        ItemID: parseInt(itemRaw[1]),
+                        Type: itemRaw[2],
+                    })
+                }
+
+                return items;
+                
+            }
+
             document.querySelector('#TemplateConfigPage')
                 .addEventListener('pageshow', function() {
                     Dashboard.showLoadingMsg();
                     ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+
+                        console.log(config);
+
                         document.querySelector('#AppID').value = config.AppID;
                         document.querySelector('#UserAuth').value = config.UserAuth;
                         document.querySelector('#AppSecret').value = config.AppSecret;
 
+
                         for (let item of config.queueItems) {
-                            const row = document.createElement("tr");
-
-                            const id = document.createElement("td");
-                            id.innerText = item.ItemID;
-
-                            const type = document.createElement("td");
-                            type.innerText = item.Type;
-
-                            row.appendChild(id);
-                            row.appendChild(type);
-
-                            document.querySelector("#itemContainer").appendChild(row);
+                            newItemRow(item.Label, item.ItemID, item.Type);
                         }
+
+                        document.getElementById("newItemButton").addEventListener("click", function () {
+                            newItemRow(document.getElementById("newItemLabel").value, document.getElementById("newItemID").value, document.getElementById("newItemType").value);
+                        })
 
                         Dashboard.hideLoadingMsg();
                     });
@@ -80,9 +159,13 @@
                 .addEventListener('submit', function(e) {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                    config.AppID = document.querySelector('#AppID').value;
+                    config.AppID = parseInt(document.querySelector('#AppID').value);
                     config.UserAuth = document.querySelector('#UserAuth').value;
                     config.AppSecret = document.querySelector('#AppSecret').value;
+                    config.queueItems = parseQueueItems();
+
+                    console.log(config);
+
                     ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
