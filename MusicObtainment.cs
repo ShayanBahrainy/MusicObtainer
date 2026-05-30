@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
 using Jellyfin.Plugin.Music.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.MusicObtainer;
 
@@ -19,7 +22,8 @@ public class MusicObtainment : BasePlugin<PluginConfiguration>, IHasWebPages
     /// </summary>
     /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
     /// <param name="xmlSerializer">Instance of the <see cref="IXmlSerializer"/> interface.</param>
-    public MusicObtainment(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
+    /// <param name="logger">Instance of the <see cref="ILogger"/> interface. </param> 
+    public MusicObtainment(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogger<MusicObtainment> logger)
         : base(applicationPaths, xmlSerializer)
     {
         Instance = this;
