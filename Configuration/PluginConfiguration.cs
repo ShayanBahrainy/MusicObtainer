@@ -17,7 +17,7 @@ public class QobuzQueueItem
     /// <summary>
     /// ID of the item
     /// </summary>
-    public int ItemID {get; set;}
+    public required string ItemID {get; set;}
 
     /// <summary>
     /// Enum to represent the item type
@@ -57,7 +57,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Initializes a new instance of the <see cref="PluginConfiguration"/> class.
     /// </summary>
     public PluginConfiguration()
-    {
+    {        
         queueItems = [];
         
         UserAuth = "SecretUserAuth123";
@@ -78,7 +78,7 @@ public class PluginConfiguration : BasePluginConfiguration
     ///  Removes an item from the queue
     /// </summary>
     /// <param name="itemID">int</param>
-    public void RemoveItem(int itemID)
+    public void RemoveItem(string itemID)
     {
         for (int i = queueItems.Count - 1; i > -1; i--)
         {

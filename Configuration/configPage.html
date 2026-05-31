@@ -34,7 +34,7 @@
                         </tr>
                         <tr>
                             <td class="label-td"><input id="newItemLabel" is="emby-input"></td>
-                            <td class="id-td"><input id="newItemID" is="emby-input" type="number"></td>
+                            <td class="id-td"><input id="newItemID" is="emby-input"></td>
                             <td class="type-td">
                                 <select is="emby-select" class="Options" id="newItemType" class="emby-select-withcolor emby-select">
                                     <option class="optAlbum" value="Album">Album</option>
@@ -114,15 +114,9 @@
                 const items = [];
 
                 for (const itemRaw of itemsRaw) {
-                    if (isNaN(parseInt(itemRaw[1]))) {
-                        alert('Item ids must be numbers!');
-                        console.error("ItemID must be a number! Found " + itemRaw[1]);
-                        return [];
-                    }
-
                     items.push({
                         Label: itemRaw[0],
-                        ItemID: parseInt(itemRaw[1]),
+                        ItemID: itemRaw[1],
                         Type: itemRaw[2],
                     })
                 }
