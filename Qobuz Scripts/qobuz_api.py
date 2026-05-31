@@ -8,6 +8,15 @@ user_auth = "KFBQWcCEfRfby8jd7cSk1LKiMW5-3D3vUa1wX7b4xQ6tozgO9LQlh_pOkf6_nm89Tpn
 app_secret = "abb21364945c0583309667d13ca3d93a"
 
 
+def setup(_app_id, _user_auth, _app_secret):
+    global app_id
+    global user_auth
+    global app_secret
+    
+    app_id = _app_id
+    user_auth = _user_auth
+    app_secret = _app_secret
+
 def get_track_url(track_id: int) -> str:
     unix = int(time.time())
 
