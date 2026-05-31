@@ -5,7 +5,12 @@ using System.Threading.Tasks;
 using System;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Plugin.Music.Configuration;
+using Python.Runtime;
 
+using System.Reflection;
+using MediaBrowser.Model.Entities;
+using System.Globalization;
 
 namespace Jellyfin.Plugin.MusicObtainer;
 
@@ -58,6 +63,13 @@ public partial class DownloadTask(ILogger<DownloadTask> logger) : IScheduledTask
     )]
     static partial void LogTaskRun(ILogger logger, LogLevel level);
 
+    static private void Log(ILogger logger, string message)
+    {
+        #pragma warning disable
+        logger.LogInformation(message);
+        #pragma warning restore
+    }
+
     /// <summary>
     /// Executes task
     /// </summary>
@@ -65,12 +77,70 @@ public partial class DownloadTask(ILogger<DownloadTask> logger) : IScheduledTask
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
-    {
-        LogTaskRun(logger, LogLevel.Information);
-        await Task.Run(() => {}, CancellationToken.None).ConfigureAwait(false);
+    { 
+        var config = MusicObtainment.Instance!.Configuration;
+        var libraryManager = MusicObtainment.Instance!.LibraryManager;
+        await Task.Run(() => {
+            using (Py.GIL()) {
+
+
+                string? musicFolderPath = null;
+
+                List<VirtualFolderInfo> virtualFolders = libraryManager.GetVirtualFolders();
+
+                foreach (VirtualFolderInfo virtualFolder in virtualFolders)
+                {
+                    if (virtualFolder.CollectionType == CollectionTypeOptions.music)
+                    {
+                        musicFolderPath = virtualFolder.Locations[0];
+                        break;
+                    }
+                }
+
+                if (musicFolderPath == null) {
+                    Log(logger, "No music collection found, exiting...");
+                    return;
+                }
+
+                dynamic sys = Py.Import("sys");
+                sys.path.append(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+                dynamic qobuzApi = Py.Import("qobuz_api");
+                dynamic songProcessor = Py.Import("process_songs");
+
+                songProcessor.setup(musicFolderPath);
+
+                qobuzApi.setup(Convert.ToString(config.AppID, CultureInfo.InvariantCulture), config.UserAuth, config.AppSecret);
+
+
+                QobuzQueueItem[] queueItems = new QobuzQueueItem[config.queueItems.Count];
+                config.queueItems.CopyTo(queueItems);
+
+                foreach (QobuzQueueItem item in queueItems) {
+                    if (cancellationToken.IsCancellationRequested) {
+                        return;
+                    }
+
+
+                    Log(logger, "Downloading: " + item.Label);
+
+                    bool failed = false;
+
+                    if (item.Type == QobuzQueueItem.ItemType.Album) {
+                        int[] album_tracks = qobuzApi.get_album_tracks(item.ItemID);
+                        foreach (int id in album_tracks) {
+                            int status = songProcessor.process_song(id);
+                            if (status != 0) failed = true;
+                        }
+                    }
+                    else {
+                        if (songProcessor.process_song(item.ItemID) != 0) failed = true;
+                    }
+
+                    if (!failed) config.RemoveItem(item.ItemID);
+                    MusicObtainment.Instance!.SaveConfiguration();
+                }             
+            }
+        }, cancellationToken).ConfigureAwait(false);
     }
-
-
-
-    
 }
