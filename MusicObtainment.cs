@@ -48,6 +48,9 @@ public class MusicObtainment : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = Name,
+                DisplayName = "Qobuz Queue",
+                EnableInMainMenu = true,
+                MenuSection = "Server",
                 EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.configPage.html", GetType().Namespace)
             }
         ];
