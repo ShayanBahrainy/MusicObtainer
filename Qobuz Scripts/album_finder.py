@@ -1,5 +1,5 @@
 from qobuz_api import get_album_tracks
-from sniffer import process_song
+from process_songs import process_song
 import time
 
 if __name__ == "__main__":
