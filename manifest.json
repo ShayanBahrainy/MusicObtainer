@@ -1,0 +1,20 @@
+[
+    {
+        "category": "General",
+        "guid": "5c24b130-bbc3-4c69-aedb-e180018792d9",
+        "name": "Music Obtainer",
+        "description": "This plugin allows you to download music from Qobuz to your Jellyfin server.",
+        "owner": "Shayan Bahrainy",
+        "overview": "Download music from Qobuz",
+        "versions": [
+            {
+                "checksum": "24c351f852d850244d82f00c9d968a86",
+                "changelog": "bug fixes and improvements",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/ShayanBahrainy/MusicObtainer/archive/refs/tags/1.0.0.zip",
+                "timestamp": "2026-05-30 20:15:00",
+                "version": "1.0.0"
+            }
+        ]
+    }
+]
